@@ -1,15 +1,22 @@
 /**
   ******************************************************************************
   * @file    main.c
-  * @author  Ac6
+  * @author  Fra
   * @version V1.0
-  * @date    01-December-2013
+  * @date    01-08-2019
   * @brief   Default main function.
   ******************************************************************************
 */
 
 
+/*
+ * Base use of DAC
+ *
+ */
+
 #include "stm32f4xx.h"
+#include "dac.h"
+#include "tim.h"
 			
 static void _initLed(void);
 static __IO uint8_t sysTickExpired = 0;
@@ -20,6 +27,13 @@ int main(void)
 {
 	SystemCoreClockUpdate();
 	_initLed();
+
+	TIM6_Config();
+
+	DAC_FV_initPin();
+
+	DAC_fv_init(e_dac_triangle, e_dac_channel_2);
+	DAC_fv_init(e_dac_triangle, e_dac_channel_1);
 
 	setSysTick (SystemCoreClock / 1000);
 	GPIO_WriteBit(GPIOG, GPIO_Pin_13, SET);
