@@ -11,5 +11,6 @@
 #include <stdint.h>
 
 extern void TIM6_Config(void);
+extern void TIM7_Config(void);
 
 #endif /* INC_TIM_H_ */

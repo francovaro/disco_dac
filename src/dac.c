@@ -13,6 +13,7 @@ uint8_t DAC_fv_init(t_dac_function function, t_dac_channel channel)
 	uint8_t retVal = 0;
 	DAC_InitTypeDef  DAC_InitStructure;
 	uint32_t DAC_Channel_var;
+	uint32_t trgo_source;
 
 	DAC_StructInit(&DAC_InitStructure);
 
@@ -21,10 +22,12 @@ uint8_t DAC_fv_init(t_dac_function function, t_dac_channel channel)
 	if (channel == e_dac_channel_1)
 	{
 		DAC_Channel_var = DAC_Channel_1;
+		trgo_source = DAC_Trigger_T6_TRGO;
 	}
 	else if (channel == e_dac_channel_2)
 	{
 		DAC_Channel_var = DAC_Channel_2;
+		trgo_source = DAC_Trigger_T7_TRGO;
 	}
 	else
 	{
@@ -46,7 +49,7 @@ uint8_t DAC_fv_init(t_dac_function function, t_dac_channel channel)
 		case e_dac_noise:
 		{
 			 /* DAC channel1 Configuration */
-			  DAC_InitStructure.DAC_Trigger = DAC_Trigger_T6_TRGO;
+			  DAC_InitStructure.DAC_Trigger = trgo_source;
 			  DAC_InitStructure.DAC_WaveGeneration = DAC_WaveGeneration_Noise;
 			  DAC_InitStructure.DAC_LFSRUnmask_TriangleAmplitude = DAC_LFSRUnmask_Bits10_0;
 			  DAC_InitStructure.DAC_OutputBuffer = DAC_OutputBuffer_Enable;
@@ -70,9 +73,9 @@ uint8_t DAC_fv_init(t_dac_function function, t_dac_channel channel)
 		case e_dac_triangle:
 		{
 			 /* DAC channel2 Configuration */
-			  DAC_InitStructure.DAC_Trigger = DAC_Trigger_T6_TRGO;
+			  DAC_InitStructure.DAC_Trigger = trgo_source;
 			  DAC_InitStructure.DAC_WaveGeneration = DAC_WaveGeneration_Triangle;
-			  DAC_InitStructure.DAC_LFSRUnmask_TriangleAmplitude = DAC_TriangleAmplitude_1023;
+			  DAC_InitStructure.DAC_LFSRUnmask_TriangleAmplitude = DAC_TriangleAmplitude_2047;
 			  DAC_InitStructure.DAC_OutputBuffer = DAC_OutputBuffer_Enable;
 			  DAC_Init(DAC_Channel_var, &DAC_InitStructure);
 
