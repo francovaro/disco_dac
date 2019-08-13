@@ -61,3 +61,33 @@ void TIM7_Config(void)
   /* TIM7 enable counter */
   TIM_Cmd(TIM7, ENABLE);
 }
+
+/**
+ * @brief TIM8 set to trigger ADC => Fupd = 9KHz
+ */
+void TIM8_Config(void)
+{
+	/* TIM8CLK = HCLK / 4 = SystemCoreClock /2 = 90 MHz*/
+
+	TIM_TimeBaseInitTypeDef    TIM_TimeBaseStructure;
+	/* TIM8 Periph clock enable */
+	RCC_APB1PeriphClockCmd(RCC_APB2Periph_TIM8, ENABLE);
+
+	/* Time base configuration */
+	TIM_TimeBaseStructInit(&TIM_TimeBaseStructure);
+
+	TIM_TimeBaseStructure.TIM_Period = 100-1;
+	TIM_TimeBaseStructure.TIM_Prescaler = 100-1;
+	// Sampling an Audio signal: Fsampl >= 7KHz
+	// with this setting: 90E6/((100)*(100)) = 9KHz
+
+	TIM_TimeBaseStructure.TIM_ClockDivision = 0;
+	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+	TIM_TimeBaseInit(TIM8, &TIM_TimeBaseStructure);
+
+	/* TIM8 TRGO selection */
+	TIM_SelectOutputTrigger(TIM8, TIM_TRGOSource_Update);
+
+	/* TIM8 enable counter */
+	TIM_Cmd(TIM8, ENABLE);
+}

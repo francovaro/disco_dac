@@ -10,7 +10,13 @@
 
 #include <stdint.h>
 
+/*
+ * TODO
+ * just one with param to set?
+ * maybe in the future...
+ */
 extern void TIM6_Config(void);
 extern void TIM7_Config(void);
+extern void TIM8_Config(void);
 
 #endif /* INC_TIM_H_ */

@@ -11,10 +11,16 @@
 
 /*
  * Base use of DAC
- *
+ * SYSCLK 180 MHz
+ * HCLK = 180 MHz
+ * APB1 = 45 MHz
+ * APB2 = 90 MHz
+ * AHB  = 180 MHz
+ * APB1 & APB2 TIM CLK = 90 MHz
  */
 
 #include "stm32f4xx.h"
+#include "adc.h"
 #include "dac.h"
 #include "tim.h"
 			
@@ -28,8 +34,10 @@ int main(void)
 	SystemCoreClockUpdate();
 	_initLed();
 
+	ADC_fv_Init();
 	TIM6_Config();
 	TIM7_Config();
+	TIM8_Config();
 
 	DAC_FV_initPin();
 
@@ -42,6 +50,16 @@ int main(void)
 
 	while(1)
 	{
+		if (SET == gDMA_FT_event)
+		{
+			gDMA_FT_event = RESET;
+		}
+
+		if (SET == gDMA_HT_event)
+		{
+			gDMA_HT_event = RESET;
+		}
+
 		if (sysTickExpired)
 		{
 			sysTickExpired = 0;
