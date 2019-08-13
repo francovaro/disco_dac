@@ -8,6 +8,12 @@
 #include "stm32f4xx_dac.h"
 #include "dac.h"
 
+/**
+ * @brief Init DAC peripheral
+ * @param function The ouput function to output
+ * @param channel The channel to configure
+ * @return 0 if OK
+ */
 uint8_t DAC_fv_init(t_dac_function function, t_dac_channel channel)
 {
 	uint8_t retVal = 0;
@@ -106,6 +112,9 @@ uint8_t DAC_fv_init(t_dac_function function, t_dac_channel channel)
 	return retVal;
 }
 
+/**
+ * @brief Init DAC GPIO
+ */
 void DAC_FV_initPin(void)
 {
 	/* Preconfiguration before using DAC----------------------------------------*/
