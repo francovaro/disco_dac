@@ -7,6 +7,15 @@
 
 #include "stm32f4xx_dac.h"
 #include "dac.h"
+#include "tim.h"
+
+#define 	DAC_BUFFER_SIZE	2
+
+static void DMA_DAC_Config(t_dac_channel channel);
+static void DMA_DAC_NVIC_Configuration(t_dac_channel channel);
+
+__IO uint16_t 	_dac_buffer[DAC_BUFFER_SIZE];
+static uint8_t _dac_buffer_index;
 
 /**
  * @brief Init DAC peripheral
@@ -44,12 +53,16 @@ uint8_t DAC_fv_init(t_dac_function function, t_dac_channel channel)
 	{
 		case e_dac_escalator:
 		{
-
+			/*
+			 * TODO			 
+			 */
 		}
 		break;
 		case e_dac_sine:
 		{
-
+			/*
+			 * TODO			 
+			 */
 		}
 		break;
 		case e_dac_noise:
@@ -66,13 +79,15 @@ uint8_t DAC_fv_init(t_dac_function function, t_dac_channel channel)
 
 			if (channel == e_dac_channel_1)
 			{
-				/* Set DAC channel2 DHR12RD register */
+				/* Set DAC channel1 DHR12RD register */
 				DAC_SetChannel1Data(DAC_Align_12b_R, 0x7FF0);
+				TIM6_Config(90, 0);
 			}
 			else if (channel == e_dac_channel_2)
 			{
 				/* Set DAC channel2 DHR12RD register */
 				DAC_SetChannel2Data(DAC_Align_12b_R, 0x7FF0);
+				TIM7_Config(180, 0);
 			}
 		}
 		break;
@@ -90,13 +105,15 @@ uint8_t DAC_fv_init(t_dac_function function, t_dac_channel channel)
 
 			if (channel == e_dac_channel_1)
 			{
-				/* Set DAC channel2 DHR12RD register */
+				/* Set DAC channel1 DHR12RD register */
 				DAC_SetChannel1Data(DAC_Align_12b_R, 0x100);
+				TIM6_Config(90, 0);
 			}
 			else if (channel == e_dac_channel_2)
 			{
 				/* Set DAC channel2 DHR12RD register */
 				DAC_SetChannel2Data(DAC_Align_12b_R, 0x100);
+				TIM7_Config(180, 0);
 			}
 
 		}
@@ -109,6 +126,21 @@ uint8_t DAC_fv_init(t_dac_function function, t_dac_channel channel)
 			DAC_InitStructure.DAC_LFSRUnmask_TriangleAmplitude = DAC_LFSRUnmask_Bits10_0;
 			DAC_InitStructure.DAC_OutputBuffer = DAC_OutputBuffer_Enable;
 			DAC_Init(DAC_Channel_var, &DAC_InitStructure);
+
+			DMA_DAC_Config(channel);
+
+			if (channel == e_dac_channel_1)
+			{
+				/* Set DAC channel1 DHR12RD register */
+				DAC_SetChannel1Data(DAC_Align_12b_R, 0x000);
+				TIM6_Config(100, 100);
+			}
+			else if (channel == e_dac_channel_2)
+			{
+				/* Set DAC channel2 DHR12RD register */
+				DAC_SetChannel2Data(DAC_Align_12b_R, 0x000);
+				TIM7_Config(100, 100);
+			}
 
 		}
 		break;
@@ -132,7 +164,7 @@ void DAC_FV_initPin(void)
 	GPIO_InitTypeDef GPIO_InitStructure;
 
 	/* DMA1 clock and GPIOA clock enable (to be used with DAC) */
-	  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA1 | RCC_AHB1Periph_GPIOA, ENABLE);
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
 
 	/* DAC Periph clock enable */
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_DAC, ENABLE);
@@ -145,33 +177,91 @@ void DAC_FV_initPin(void)
 
 }
 
-
-/*
-
-  DMA_DeInit(DMA1_Stream5);
-  DMA_InitStructure.DMA_Channel = DMA_Channel_7;
-  DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)DAC_DHR12R2_ADDRESS;
-  DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)&DAC_buffer;
-  DMA_InitStructure.DMA_DIR = DMA_DIR_MemoryToPeripheral;
-  DMA_InitStructure.DMA_BufferSize = DAC_BUFFERS_SIZE;
-  DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
-  DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
-  DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_HalfWord;
-  DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;
-  DMA_InitStructure.DMA_Mode = DMA_Mode_Circular;
-  DMA_InitStructure.DMA_Priority = DMA_Priority_High;
-  DMA_InitStructure.DMA_FIFOMode = DMA_FIFOMode_Disable;
-  DMA_InitStructure.DMA_FIFOThreshold = DMA_FIFOThreshold_HalfFull;
-  DMA_InitStructure.DMA_MemoryBurst = DMA_MemoryBurst_Single;
-  DMA_InitStructure.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
-  DMA_Init(DMA1_Stream5, &DMA_InitStructure);
-
-
-  DMA_Cmd(DMA1_Stream5, ENABLE);
-
-
-  DAC_Cmd(DAC_Channel_2, ENABLE);
-
-
-  DAC_DMACmd(DAC_Channel_2, ENABLE);
+/**
+ * @brief Config DMA for DAC
  */
+void DMA_DAC_Config(t_dac_channel channel)
+{
+	/*
+	 * DMA1
+	 * Channel 7
+	 * Stream 5 => DAC1
+	 * Stream 6 => DAC2
+	 */
+	DMA_InitTypeDef       DMA_InitStructure;
+
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA1, ENABLE);
+
+	DMA_DeInit(DMA1_Stream5);
+	DMA_DeInit(DMA1_Stream6);
+	
+	DMA_InitStructure.DMA_Channel = DMA_Channel_7;
+
+
+
+	DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)&_dac_buffer;
+	DMA_InitStructure.DMA_DIR = DMA_DIR_MemoryToPeripheral;
+	DMA_InitStructure.DMA_BufferSize = DAC_BUFFER_SIZE;
+	DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
+	DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
+	DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_HalfWord;
+	DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;
+	DMA_InitStructure.DMA_Mode = DMA_Mode_Circular;
+	DMA_InitStructure.DMA_Priority = DMA_Priority_High;
+	DMA_InitStructure.DMA_FIFOMode = DMA_FIFOMode_Disable;
+	DMA_InitStructure.DMA_FIFOThreshold = DMA_FIFOThreshold_HalfFull;
+	DMA_InitStructure.DMA_MemoryBurst = DMA_MemoryBurst_Single;
+	DMA_InitStructure.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
+	
+	if (channel == e_dac_channel_1)
+	{
+		DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)DAC->DHR12R1;
+
+		DMA_Init(DMA1_Stream5, &DMA_InitStructure);
+		DMA_Cmd(DMA1_Stream5, ENABLE);
+
+		DAC_Cmd(DAC_Channel_1, ENABLE);
+
+		DAC_DMACmd(DAC_Channel_1, ENABLE);	
+	}
+	else if (channel == e_dac_channel_2)
+	{
+		DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)DAC->DHR12R2;
+		DMA_Init(DMA1_Stream6, &DMA_InitStructure);
+
+		DMA_Cmd(DMA1_Stream6, ENABLE);
+
+		DAC_Cmd(DAC_Channel_2, ENABLE);
+
+		DAC_DMACmd(DAC_Channel_2, ENABLE);	
+	}
+	
+}
+
+void DMA_DAC_NVIC_Configuration(t_dac_channel channel)
+{
+	NVIC_InitTypeDef NVIC_InitStructure;
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
+
+	if (channel == e_dac_channel_1)
+	{
+		NVIC_InitStructure.NVIC_IRQChannel = DMA1_Stream5_IRQn;
+	}
+	else if (channel == e_dac_channel_2)
+	{
+		NVIC_InitStructure.NVIC_IRQChannel = DMA1_Stream6_IRQn;
+	}
+
+	
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+
+	NVIC_Init(&NVIC_InitStructure);
+}
+
+void DMA_Feed_Buffer(uint16_t newSample)
+{
+	_dac_buffer[_dac_buffer_index] = newSample;
+	_dac_buffer_index = (_dac_buffer_index + 1) % DAC_BUFFER_SIZE;
+}
