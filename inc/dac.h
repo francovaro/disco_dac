@@ -16,7 +16,6 @@ typedef enum
 	e_dac_sine 			= 1u,
 	e_dac_noise 		= 2u,
 	e_dac_triangle	 	= 3u,
-	e_dac_buffer	 	= 4u,
 	e_dac_max
 } t_dac_function;
 
