@@ -63,7 +63,7 @@ int main(void)
 		{
 			gDMA_HT_event = RESET;
 			DMA_Feed_Buffer(ADC_return_val(0));
-			GPIO_ToggleBits(GPIOG, GPIO_Pin_14);
+			GPIO_ToggleBits(GPIOG, GPIO_Pin_13);
 		}
 /*
 		if (SET == gGPIO_UP)
