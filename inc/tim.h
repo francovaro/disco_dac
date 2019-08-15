@@ -14,7 +14,7 @@ typedef enum
 {
 	e_tim_6 	= 0,
 	e_tim_7		= 1u,
-	e_tim_2 	= 2u,
+	e_tim_8 	= 2u,
 	e_tim_max
 } t_tim_number;
 

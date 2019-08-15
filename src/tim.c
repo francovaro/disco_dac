@@ -83,13 +83,13 @@ void TIM7_Config(uint16_t prescaler, uint16_t period)
 /**
  * @brief TIM8 set to trigger ADC => Fupd = 9KHz
  */
-void TIM2_Config(void)
+void TIM8_Config(void)
 {
 	/* TIM8CLK = HCLK / 4 = SystemCoreClock /2 = 90 MHz*/
 
 	TIM_TimeBaseInitTypeDef    TIM_TimeBaseStructure;
 	/* TIM8 Periph clock enable */
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
+	RCC_APB1PeriphClockCmd(RCC_APB2Periph_TIM8, ENABLE);
 
 	/* Time base configuration */
 	TIM_TimeBaseStructInit(&TIM_TimeBaseStructure);
@@ -101,13 +101,13 @@ void TIM2_Config(void)
 
 	TIM_TimeBaseStructure.TIM_ClockDivision = 0;
 	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
-	TIM_TimeBaseInit(TIM2, &TIM_TimeBaseStructure);
+	TIM_TimeBaseInit(TIM8, &TIM_TimeBaseStructure);
 
 	/* TIM8 TRGO selection */
-	TIM_SelectOutputTrigger(TIM2, TIM_TRGOSource_Update);
+	TIM_SelectOutputTrigger(TIM8, TIM_TRGOSource_Update);
 
 	/* TIM8 enable counter */
-	TIM_Cmd(TIM2, ENABLE);
+	TIM_Cmd(TIM8, ENABLE);
 }
 
 void TIM_x_UpdateTimer(t_tim_number timConfig, uint16_t newPrescaler, uint16_t newARR)
@@ -126,15 +126,9 @@ void TIM_x_UpdateTimer(t_tim_number timConfig, uint16_t newPrescaler, uint16_t n
         TIMx = TIM7;
       }
       break;
-      case e_tim_2:
+      case e_tim_8:
       {
-        TIMx = TIM2;
-      }
-      break;
-      default:
-      case e_tim_max:
-      {
-
+        TIMx = TIM8;
       }
       break;
   }

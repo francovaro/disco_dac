@@ -58,7 +58,7 @@ void ADC_fv_Init(void)
 	ADC_InitStructure.ADC_ContinuousConvMode = DISABLE;	// TIM8 will trigger
 
 	ADC_InitStructure.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_Rising;
-	ADC_InitStructure.ADC_ExternalTrigConv = ADC_ExternalTrigConv_T2_TRGO; // sure ?
+	ADC_InitStructure.ADC_ExternalTrigConv = ADC_ExternalTrigConv_T8_TRGO; // sure ?
 
 	ADC_InitStructure.ADC_DataAlign = ADC_DataAlign_Right;
 	ADC_InitStructure.ADC_NbrOfConversion = 1;
@@ -72,8 +72,6 @@ void ADC_fv_Init(void)
 
 	ADC_DMARequestAfterLastTransferCmd(ADC1, ENABLE);
 	ADC_DMACmd(ADC1, ENABLE); /* Enable ADC1 DMA */
-
-	ADC_Cmd(ADC1, ENABLE);
 }
 
 /**
@@ -92,11 +90,17 @@ void DMA_ADC_Config(void)
 	/* DMA2 Stream0 channel2 configuration **************************************/
 	DMA_InitStructure.DMA_Channel = DMA_Channel_0;
 	DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)(&ADC1->DR);
-	DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)&_adc_buffer[0];
+	/* destination ! */
+	DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)&_adc_buffer;
+
 	DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralToMemory;
+
 	DMA_InitStructure.DMA_BufferSize = ADC_BUFFER_SIZE;
+
 	DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
-	DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
+
+	DMA_InitStructure.DMA_MemoryInc = DMA_PeripheralInc_Disable;
+
 	DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_HalfWord;
 	DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;
 	DMA_InitStructure.DMA_Mode = DMA_Mode_Circular;
