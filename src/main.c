@@ -40,7 +40,7 @@ int main(void)
 
 	DAC_FV_initPin();
 
-	DAC_fv_init(e_dac_buffer, e_dac_channel_2);
+	DAC_fv_init(e_dac_triangle, e_dac_channel_2);
 	DAC_fv_init(e_dac_buffer, e_dac_channel_1);
 
 	setSysTick (1000);

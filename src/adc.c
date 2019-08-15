@@ -28,7 +28,7 @@ void ADC_fv_Init(void)
 	GPIO_InitTypeDef GPIO_InitStructure;
 
 	DMA_ADC_Config();
-	// PA1 ADc1 channel 1
+	// PF6 ADC3 channel 4
 
 	// Initialize structures
 	GPIO_StructInit(&GPIO_InitStructure);
@@ -36,13 +36,13 @@ void ADC_fv_Init(void)
 	ADC_CommonStructInit(&ADC_CommonInitStructure);
 
 	/* Config PIN */
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
-	GPIO_InitStructure.GPIO_Pin = ( GPIO_Pin_1 );
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOF, ENABLE);
+	GPIO_InitStructure.GPIO_Pin = ( GPIO_Pin_6 );
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-	GPIO_Init(GPIOA , &GPIO_InitStructure);
+	GPIO_Init(GPIOF , &GPIO_InitStructure);
 
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, ENABLE);	// ADC1 is using APB2 => 90 MHz
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC3, ENABLE);	// ADC3 is using APB2 => 90 MHz
 
 	/* ADC Common Init */
 	ADC_CommonInitStructure.ADC_Mode = ADC_Mode_Independent ;					//0 ;
@@ -62,18 +62,18 @@ void ADC_fv_Init(void)
 
 	ADC_InitStructure.ADC_DataAlign = ADC_DataAlign_Right;
 	ADC_InitStructure.ADC_NbrOfConversion = 1;
-	ADC_Init(ADC1 , &ADC_InitStructure);
+	ADC_Init(ADC3 , &ADC_InitStructure);
 
 	/*
 	 * ADC convesrion time: 15 cycles
 	 * = 15*(1/45Mhz) = 3.33E-7 => 0.33 mS
 	 */
-	ADC_RegularChannelConfig(ADC1, ADC_Channel_1, 1, ADC_SampleTime_15Cycles);
+	ADC_RegularChannelConfig(ADC3, ADC_Channel_4, 1, ADC_SampleTime_15Cycles);
 
-	ADC_DMARequestAfterLastTransferCmd(ADC1, ENABLE);
-	ADC_DMACmd(ADC1, ENABLE); /* Enable ADC1 DMA */
+	ADC_DMARequestAfterLastTransferCmd(ADC3, ENABLE);
+	ADC_DMACmd(ADC3, ENABLE); /* Enable ADC1 DMA */
 
-	ADC_Cmd(ADC1, ENABLE);
+	ADC_Cmd(ADC3, ENABLE);
 }
 
 /**
@@ -87,11 +87,11 @@ void DMA_ADC_Config(void)
 
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA2, ENABLE);
 
-	/* ADC1: DMA2 stream 0 channel 0*/
+	/* ADC3: DMA2 stream 0 channel 2*/
 
 	/* DMA2 Stream0 channel2 configuration **************************************/
-	DMA_InitStructure.DMA_Channel = DMA_Channel_0;
-	DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)(&ADC1->DR);
+	DMA_InitStructure.DMA_Channel = DMA_Channel_2;
+	DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)(&ADC3->DR);
 	DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)&_adc_buffer[0];
 	DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralToMemory;
 	DMA_InitStructure.DMA_BufferSize = ADC_BUFFER_SIZE;
