@@ -5,7 +5,7 @@
  *      Author: franc
  */
 
-#include "stm32f4xx_adc.h"
+#include "stm32f4xx_dac.h"
 #include "adc.h"
 
 #define			ADC_BUFFER_SIZE	2
@@ -101,6 +101,7 @@ void DMA_ADC_Config(void)
 
 	DMA_InitStructure.DMA_MemoryInc = DMA_PeripheralInc_Disable;
 
+
 	DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_HalfWord;
 	DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;
 	DMA_InitStructure.DMA_Mode = DMA_Mode_Circular;
@@ -158,19 +159,4 @@ void DMA2_Stream0_IRQHandler(void)
 		DMA_ClearITPendingBit(DMA2_Stream0, DMA_IT_TCIF0);
 	}
 
-}
-
-/**
- * @brief return ADC read value
- * @param index index inside the buffer to return
- * @return indexed buffer value
- */
-uint16_t ADC_return_val(uint8_t index)
-{
-	if (index >= ADC_BUFFER_SIZE)
-	{
-		return 0;
-	}
-
-	return _adc_buffer[index];
 }
