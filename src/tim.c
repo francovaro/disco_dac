@@ -5,17 +5,17 @@
  *      Author: franc
  */
 
-/**
-  * @brief  TIM6 Configuration
-  * @note   TIM6 configuration is based on CPU @180MHz and APB1 @45MHz
-  * @note   TIM6 Update event occurs each TIM6CLK(MHz)/256
-  * @param  None
-  * @retval None
-  */
 
 #include "stm32f4xx_tim.h"
 #include "tim.h"
 
+/**
+  * @brief  TIM6 Configuration
+  * @note   TIM6 configuration is based on CPU @180MHz and APB1 @45MHz
+  * @param  prescaler
+  * @param  period
+  * @retval None
+  */
 void TIM6_Config(uint16_t prescaler, uint16_t period)
 {
   /* TIM6CLK = HCLK / 4 = SystemCoreClock /2 = 90 MHz*/
@@ -48,6 +48,11 @@ void TIM6_Config(uint16_t prescaler, uint16_t period)
   TIM_Cmd(TIM6, ENABLE);
 }
 
+/**
+ *
+ * @param prescaler
+ * @param period
+ */
 void TIM7_Config(uint16_t prescaler, uint16_t period)
 {
   /* TIM7CLK = HCLK / 4 = SystemCoreClock /2 = 90 MHz*/
@@ -69,6 +74,7 @@ void TIM7_Config(uint16_t prescaler, uint16_t period)
   TIM_TimeBaseStructInit(&TIM_TimeBaseStructure);
   TIM_TimeBaseStructure.TIM_Period = period - 1; 						/*  Specifies the period value to be loaded into the active Auto-Reload Register at the next update event.*/
   TIM_TimeBaseStructure.TIM_Prescaler = prescaler - 1; 					/*Specifies the prescaler value used to divide the TIM clock.*/
+
   TIM_TimeBaseStructure.TIM_ClockDivision = 0;
   TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
   TIM_TimeBaseInit(TIM7, &TIM_TimeBaseStructure);

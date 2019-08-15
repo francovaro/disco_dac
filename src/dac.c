@@ -9,7 +9,7 @@
 #include "dac.h"
 #include "tim.h"
 
-#define 	DAC_BUFFER_SIZE	2
+#define 	DAC_BUFFER_SIZE	20
 
 static void DMA_DAC_Config(t_dac_channel channel);
 static void DMA_DAC_NVIC_Configuration(t_dac_channel channel);
@@ -67,16 +67,6 @@ uint8_t DAC_fv_init(t_dac_function function, t_dac_channel channel)
 		break;
 		case e_dac_noise:
 		{
-			/* DAC channel Configuration */
-			DAC_InitStructure.DAC_Trigger = trgo_source;
-			DAC_InitStructure.DAC_WaveGeneration = DAC_WaveGeneration_Noise;
-			DAC_InitStructure.DAC_LFSRUnmask_TriangleAmplitude = DAC_LFSRUnmask_Bits10_0;
-			DAC_InitStructure.DAC_OutputBuffer = DAC_OutputBuffer_Enable;
-			DAC_Init(DAC_Channel_var, &DAC_InitStructure);
-
-			/* Enable DAC Channel */
-			DAC_Cmd(DAC_Channel_var, ENABLE);
-
 			if (channel == e_dac_channel_1)
 			{
 				/* Set DAC channel1 DHR12RD register */
@@ -89,10 +79,33 @@ uint8_t DAC_fv_init(t_dac_function function, t_dac_channel channel)
 				DAC_SetChannel2Data(DAC_Align_12b_R, 0x7FF0);
 				TIM7_Config(180, 0);
 			}
+
+			/* DAC channel Configuration */
+			DAC_InitStructure.DAC_Trigger = trgo_source;
+			DAC_InitStructure.DAC_WaveGeneration = DAC_WaveGeneration_Noise;
+			DAC_InitStructure.DAC_LFSRUnmask_TriangleAmplitude = DAC_LFSRUnmask_Bits10_0;
+			DAC_InitStructure.DAC_OutputBuffer = DAC_OutputBuffer_Enable;
+			DAC_Init(DAC_Channel_var, &DAC_InitStructure);
+
+			/* Enable DAC Channel */
+			DAC_Cmd(DAC_Channel_var, ENABLE);
 		}
 		break;
 		case e_dac_triangle:
 		{
+			if (channel == e_dac_channel_1)
+			{
+				/* Set DAC channel1 DHR12RD register */
+				DAC_SetChannel1Data(DAC_Align_12b_R, 0xF00);
+				TIM6_Config(90, 0);
+			}
+			else if (channel == e_dac_channel_2)
+			{
+				/* Set DAC channel2 DHR12RD register */
+				DAC_SetChannel2Data(DAC_Align_12b_R, 0xF00);
+				TIM7_Config(180, 0);
+			}
+
 			/* DAC channel Configuration */
 			DAC_InitStructure.DAC_Trigger = trgo_source;
 			DAC_InitStructure.DAC_WaveGeneration = DAC_WaveGeneration_Triangle;
@@ -102,48 +115,33 @@ uint8_t DAC_fv_init(t_dac_function function, t_dac_channel channel)
 
 			/* Enable DAC Channel */
 			DAC_Cmd(DAC_Channel_var, ENABLE);
-
-			if (channel == e_dac_channel_1)
-			{
-				/* Set DAC channel1 DHR12RD register */
-				DAC_SetChannel1Data(DAC_Align_12b_R, 0x100);
-				TIM6_Config(90, 0);
-			}
-			else if (channel == e_dac_channel_2)
-			{
-				/* Set DAC channel2 DHR12RD register */
-				DAC_SetChannel2Data(DAC_Align_12b_R, 0x100);
-				TIM7_Config(180, 0);
-			}
-
 		}
 		break;
 		case e_dac_buffer:
 		{
-			/* DAC channel1 Configuration */
-			DAC_InitStructure.DAC_Trigger = trgo_source;	// probably TO CHANGE
-			DAC_InitStructure.DAC_WaveGeneration = DAC_WaveGeneration_None;
-			DAC_InitStructure.DAC_LFSRUnmask_TriangleAmplitude = DAC_LFSRUnmask_Bits10_0;
-			DAC_InitStructure.DAC_OutputBuffer = DAC_OutputBuffer_Enable;
-			DAC_Init(DAC_Channel_var, &DAC_InitStructure);
-
-			DMA_DAC_Config(channel);
-
 			if (channel == e_dac_channel_1)
 			{
 				_dac_buffer_index_ch1 = 0;
 				/* Set DAC channel1 DHR12RD register */
-				DAC_SetChannel1Data(DAC_Align_12b_R, 0x000);
+				DAC_SetChannel1Data(DAC_Align_12b_R, 0x050);
 				TIM6_Config(100, 100);
 			}
 			else if (channel == e_dac_channel_2)
 			{
 				_dac_buffer_index_ch2 = 0;
 				/* Set DAC channel2 DHR12RD register */
-				DAC_SetChannel2Data(DAC_Align_12b_R, 0x000);
+				DAC_SetChannel2Data(DAC_Align_12b_R, 0x050);
 				TIM7_Config(100, 100);
 			}
 
+			/* DAC channel1 Configuration */
+			DAC_InitStructure.DAC_Trigger = trgo_source;	// probably TO CHANGE
+			DAC_InitStructure.DAC_WaveGeneration = DAC_WaveGeneration_None;
+			//DAC_InitStructure.DAC_LFSRUnmask_TriangleAmplitude = DAC_LFSRUnmask_Bits10_0;
+			DAC_InitStructure.DAC_OutputBuffer = DAC_OutputBuffer_Enable;
+			DAC_Init(DAC_Channel_var, &DAC_InitStructure);
+
+			DMA_DAC_Config(channel);
 		}
 		break;
 		default:
@@ -194,9 +192,6 @@ void DMA_DAC_Config(t_dac_channel channel)
 
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA1, ENABLE);
 
-	DMA_DeInit(DMA1_Stream5);
-	DMA_DeInit(DMA1_Stream6);
-	
 	DMA_InitStructure.DMA_Channel = DMA_Channel_7;
 
 	DMA_InitStructure.DMA_DIR = DMA_DIR_MemoryToPeripheral;
@@ -211,14 +206,21 @@ void DMA_DAC_Config(t_dac_channel channel)
 	DMA_InitStructure.DMA_FIFOThreshold = DMA_FIFOThreshold_HalfFull;
 	DMA_InitStructure.DMA_MemoryBurst = DMA_MemoryBurst_Single;
 	DMA_InitStructure.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
-	
+
 	if (channel == e_dac_channel_1)
 	{
+		DMA_DeInit(DMA1_Stream5);
+
 		DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)DAC->DHR12R1;
-		DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)&_dac_buffer_ch1;
+		DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)&_dac_buffer_ch1[0];
 
 		DMA_Init(DMA1_Stream5, &DMA_InitStructure);
+
+		DMA_ITConfig(DMA1_Stream5, DMA_IT_TC | DMA_IT_HT,  ENABLE);
+
 		DMA_Cmd(DMA1_Stream5, ENABLE);
+
+		DMA_DAC_NVIC_Configuration(e_dac_channel_1);
 
 		DAC_Cmd(DAC_Channel_1, ENABLE);
 
@@ -226,12 +228,18 @@ void DMA_DAC_Config(t_dac_channel channel)
 	}
 	else if (channel == e_dac_channel_2)
 	{
+		DMA_DeInit(DMA1_Stream6);
+
 		DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)DAC->DHR12R2;
-		DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)&_dac_buffer_ch2;
+		DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)&_dac_buffer_ch2[0];
 
 		DMA_Init(DMA1_Stream6, &DMA_InitStructure);
 
+		DMA_ITConfig(DMA1_Stream6, DMA_IT_TC | DMA_IT_HT,  ENABLE);
+
 		DMA_Cmd(DMA1_Stream6, ENABLE);
+
+		DMA_DAC_NVIC_Configuration(e_dac_channel_2);
 
 		DAC_Cmd(DAC_Channel_2, ENABLE);
 
@@ -275,4 +283,30 @@ void DMA_Feed_Buffer(uint16_t newSample, t_dac_channel channel)
 		_dac_buffer_index_ch2 = (_dac_buffer_index_ch2 + 1) % DAC_BUFFER_SIZE;
 	}
 
+}
+
+void DMA1_Stream5_IRQHandler(void)
+{
+	if(DMA_GetITStatus(DMA1_Stream5, DMA_IT_HTIF0))
+	{
+		DMA_ClearITPendingBit(DMA1_Stream5, DMA_IT_HTIF0);
+	}
+
+	if(DMA_GetITStatus(DMA1_Stream5, DMA_IT_TCIF0))
+	{
+		DMA_ClearITPendingBit(DMA1_Stream5, DMA_IT_TCIF0);
+	}
+}
+
+void DMA1_Stream6_IRQHandler(void)
+{
+	if(DMA_GetITStatus(DMA1_Stream6, DMA_IT_HTIF0))
+	{
+		DMA_ClearITPendingBit(DMA1_Stream6, DMA_IT_HTIF0);
+	}
+
+	if(DMA_GetITStatus(DMA1_Stream6, DMA_IT_TCIF0))
+	{
+		DMA_ClearITPendingBit(DMA1_Stream6, DMA_IT_TCIF0);
+	}
 }
