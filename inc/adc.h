@@ -10,10 +10,9 @@
 
 #include <stdint.h>
 
-__IO uint8_t gDMA_FT_event;
-__IO uint8_t gDMA_HT_event;
+__IO uint16_t _DMA_FT_event;
+__IO uint16_t _DMA_HT_event;
 
-extern void ADC_fv_Init(void);
-extern uint16_t ADC_return_val(uint8_t index);
+void ADC_fv_Init(void);
 
 #endif /* INC_ADC_H_ */

@@ -5,19 +5,19 @@
  *      Author: franc
  */
 
-#include "stm32f4xx_adc.h"
+#include "stm32f4xx_dac.h"
 #include "adc.h"
 
-#define			ADC_BUFFER_SIZE	2
+#define			ADC_BUFFER_SIZE	25
 
 static void DMA_ADC_Config(void);
 static void DMA_NVIC_Configuration(void);
 
-__IO uint16_t 	_adc_buffer[ADC_BUFFER_SIZE];
+__IO uint16_t 	adc_buffer[ADC_BUFFER_SIZE];
 __IO uint16_t	_adc_read;
 
 /**
- * @brief Init ADC peripheral with DMA and triggered by TIM
+ * @brief Init ADC peripheral
  * @param void
  * @return void
  */
@@ -28,52 +28,7 @@ void ADC_fv_Init(void)
 	GPIO_InitTypeDef GPIO_InitStructure;
 
 	DMA_ADC_Config();
-	// PF6 ADC3 channel 4
-
-	// Initialize structures
-	GPIO_StructInit(&GPIO_InitStructure);
-	ADC_StructInit(&ADC_InitStructure);
-	ADC_CommonStructInit(&ADC_CommonInitStructure);
-
-	/* Config PIN */
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOF, ENABLE);
-	GPIO_InitStructure.GPIO_Pin = ( GPIO_Pin_6 );
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-	GPIO_Init(GPIOF , &GPIO_InitStructure);
-
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC3, ENABLE);	// ADC3 is using APB2 => 90 MHz
-
-	/* ADC Common Init */
-	ADC_CommonInitStructure.ADC_Mode = ADC_Mode_Independent ;					//0 ;
-	ADC_CommonInitStructure.ADC_Prescaler = ADC_Prescaler_Div2;					// => APB2/2 -> 45 mhz ?
-	ADC_CommonInitStructure.ADC_DMAAccessMode = ADC_DMAAccessMode_Disabled;		/* for multi ADC !*/
-	ADC_CommonInitStructure.ADC_TwoSamplingDelay = ADC_TwoSamplingDelay_5Cycles;
-	ADC_CommonInit(&ADC_CommonInitStructure);
-
-	/* ADC Init */
-	ADC_InitStructure.ADC_Resolution = ADC_Resolution_12b;
-	ADC_InitStructure.ADC_ScanConvMode = DISABLE;
-
-	ADC_InitStructure.ADC_ContinuousConvMode = DISABLE;	// TIM8 will trigger
-
-	ADC_InitStructure.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_Rising;
-	ADC_InitStructure.ADC_ExternalTrigConv = ADC_ExternalTrigConv_T2_TRGO; // sure ?
-
-	ADC_InitStructure.ADC_DataAlign = ADC_DataAlign_Right;
-	ADC_InitStructure.ADC_NbrOfConversion = 1;
-	ADC_Init(ADC3 , &ADC_InitStructure);
-
-	/*
-	 * ADC convesrion time: 15 cycles
-	 * = 15*(1/45Mhz) = 3.33E-7 => 0.33 mS
-	 */
-	ADC_RegularChannelConfig(ADC3, ADC_Channel_4, 1, ADC_SampleTime_15Cycles);
-
-	ADC_DMARequestAfterLastTransferCmd(ADC3, ENABLE);
-	ADC_DMACmd(ADC3, ENABLE); /* Enable ADC1 DMA */
-
-	ADC_Cmd(ADC3, ENABLE);
+	// PA1 ADc1 channel 1
 }
 
 /**
@@ -87,16 +42,23 @@ void DMA_ADC_Config(void)
 
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA2, ENABLE);
 
-	/* ADC3: DMA2 stream 0 channel 2*/
+	/* ADC1: DMA2 stream 0 channel 0*/
 
 	/* DMA2 Stream0 channel2 configuration **************************************/
-	DMA_InitStructure.DMA_Channel = DMA_Channel_2;
-	DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)(&ADC3->DR);
-	DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)&_adc_buffer[0];
+	DMA_InitStructure.DMA_Channel = DMA_Channel_0;
+	DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)(&ADC1->DR);
+	/* destination ! */
+	DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)&_adc_read;
+
 	DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralToMemory;
-	DMA_InitStructure.DMA_BufferSize = ADC_BUFFER_SIZE;
+
+	DMA_InitStructure.DMA_BufferSize = 1;
+
 	DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
-	DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
+
+	DMA_InitStructure.DMA_MemoryInc = DMA_PeripheralInc_Disable;
+
+
 	DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_HalfWord;
 	DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;
 	DMA_InitStructure.DMA_Mode = DMA_Mode_Circular;
@@ -110,13 +72,13 @@ void DMA_ADC_Config(void)
 
 	DMA_Init(DMA2_Stream0, &DMA_InitStructure);
 
-	DMA_ITConfig(DMA2_Stream0, DMA_IT_TC | DMA_IT_HT,  ENABLE);
+	DMA_ITConfig(DMA2_Stream0, DMA_IT_TC /*| DMA_IT_HT*/,  ENABLE);
 	DMA_Cmd(DMA2_Stream0, ENABLE);
 
-	gDMA_FT_event = RESET;
-	gDMA_HT_event = RESET;
+	_DMA_FT_event = RESET;
+	_DMA_HT_event = RESET;
 
-	//while(DMA_GetCmdStatus(DMA2_Stream0)!=ENABLE);		//check if DMA is ready
+	//while(DMA_GetCmdStatus(DMA2_Stream0)!=ENABLE);		//controllo se il DMA è a posto
 
 	DMA_NVIC_Configuration();
 }
@@ -136,39 +98,4 @@ void DMA_NVIC_Configuration(void)
   NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
   NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
   NVIC_Init(&NVIC_InitStructure);
-}
-
-/**
- * @brief IRQ Handler for DMA
- */
-void DMA2_Stream0_IRQHandler(void)
-{
-	if(DMA_GetITStatus(DMA2_Stream0, DMA_IT_HTIF0))
-	{
-		gDMA_HT_event = SET;
-		DMA_ClearITPendingBit(DMA2_Stream0, DMA_IT_HTIF0);
-	}
-
-	/* Test on DMA Stream Transfer Complete interrupt */
-	if(DMA_GetITStatus(DMA2_Stream0, DMA_IT_TCIF0))
-	{
-		gDMA_FT_event = SET;
-		DMA_ClearITPendingBit(DMA2_Stream0, DMA_IT_TCIF0);
-	}
-
-}
-
-/**
- * @brief return ADC read value
- * @param index index inside the buffer to return
- * @return indexed buffer value
- */
-uint16_t ADC_return_val(uint8_t index)
-{
-	if (index >= ADC_BUFFER_SIZE)
-	{
-		return 0;
-	}
-
-	return _adc_buffer[index];
 }

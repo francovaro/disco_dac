@@ -39,6 +39,8 @@ uint8_t DAC_fv_init(t_dac_function function, t_dac_channel channel)
 
 	DAC_StructInit(&DAC_InitStructure);
 
+	// DAC_DeInit();
+
 	if (channel == e_dac_channel_1)
 	{
 		DAC_Channel_var = DAC_Channel_1;
@@ -58,9 +60,7 @@ uint8_t DAC_fv_init(t_dac_function function, t_dac_channel channel)
 	{
 		case e_dac_escalator:
 		{
-			/*
-			 * TODO			 
-			 */
+
 		}
 		break;
 		case e_dac_sine:
@@ -188,7 +188,7 @@ void DAC_FV_initPin(void)
 	GPIO_InitTypeDef GPIO_InitStructure;
 
 	/* DMA1 clock and GPIOA clock enable (to be used with DAC) */
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
+	  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA1 | RCC_AHB1Periph_GPIOA, ENABLE);
 
 	/* DAC Periph clock enable */
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_DAC, ENABLE);
