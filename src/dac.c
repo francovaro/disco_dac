@@ -71,13 +71,13 @@ uint8_t DAC_fv_init(t_dac_function function, t_dac_channel channel)
 			{
 				/* Set DAC channel1 DHR12RD register */
 				DAC_SetChannel1Data(DAC_Align_12b_R, 0x7FF0);
-				TIM6_Config(90, 0);
+				TIM6_Config(90, 1);
 			}
 			else if (channel == e_dac_channel_2)
 			{
 				/* Set DAC channel2 DHR12RD register */
 				DAC_SetChannel2Data(DAC_Align_12b_R, 0x7FF0);
-				TIM7_Config(180, 0);
+				TIM7_Config(180, 1);
 			}
 
 			/* DAC channel Configuration */
@@ -96,14 +96,14 @@ uint8_t DAC_fv_init(t_dac_function function, t_dac_channel channel)
 			if (channel == e_dac_channel_1)
 			{
 				/* Set DAC channel1 DHR12RD register */
-				DAC_SetChannel1Data(DAC_Align_12b_R, 0xF00);
-				TIM6_Config(90, 0);
+				DAC_SetChannel1Data(DAC_Align_12b_R, 0x100);
+				TIM6_Config(90, 1);
 			}
 			else if (channel == e_dac_channel_2)
 			{
 				/* Set DAC channel2 DHR12RD register */
-				DAC_SetChannel2Data(DAC_Align_12b_R, 0xF00);
-				TIM7_Config(180, 0);
+				DAC_SetChannel2Data(DAC_Align_12b_R, 0x100);
+				TIM7_Config(180, 1);
 			}
 
 			/* DAC channel Configuration */

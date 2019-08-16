@@ -44,8 +44,8 @@ int main(void)
 	DAC_fv_init(e_dac_triangle, e_dac_channel_2);
 
 	setSysTick (1000);
-	GPIO_WriteBit(GPIOG, GPIO_Pin_13, RESET);
-	GPIO_WriteBit(GPIOG, GPIO_Pin_14, SET);
+	GPIO_WriteBit(GPIOG, GPIO_Pin_13, SET);
+	GPIO_WriteBit(GPIOG, GPIO_Pin_14, RESET);
 
 	while(1)
 	{

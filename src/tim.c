@@ -16,7 +16,7 @@
   * @param  period
   * @retval None
   */
-void TIM6_Config(uint16_t prescaler, uint16_t period)
+void TIM6_Config(uint16_t period, uint16_t prescaler)
 {
   /* TIM6CLK = HCLK / 4 = SystemCoreClock /2 = 90 MHz*/
   TIM_TimeBaseInitTypeDef    TIM_TimeBaseStructure;
@@ -53,7 +53,7 @@ void TIM6_Config(uint16_t prescaler, uint16_t period)
  * @param prescaler
  * @param period
  */
-void TIM7_Config(uint16_t prescaler, uint16_t period)
+void TIM7_Config(uint16_t period, uint16_t prescaler)
 {
   /* TIM7CLK = HCLK / 4 = SystemCoreClock /2 = 90 MHz*/
   TIM_TimeBaseInitTypeDef    TIM_TimeBaseStructure;

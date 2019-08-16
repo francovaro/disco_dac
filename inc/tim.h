@@ -23,8 +23,8 @@ typedef enum
  * just one with param to set?
  * maybe in the future...
  */
-extern void TIM6_Config(uint16_t prescaler, uint16_t period);
-extern void TIM7_Config(uint16_t prescaler, uint16_t period);
+extern void TIM6_Config(uint16_t period, uint16_t prescaler);
+extern void TIM7_Config(uint16_t period, uint16_t prescaler);
 extern void TIM2_Config(void);
 extern void TIM_x_UpdateTimer(t_tim_number timConfig, uint16_t newPrescaler, uint16_t newARR);
 
