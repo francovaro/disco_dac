@@ -80,14 +80,13 @@ uint8_t DAC_fv_init(t_dac_function function, t_dac_channel channel)
 				TIM7_Config(0xFF, 1);
 			}
 
-			/* DAC channel1 Configuration */
+			/* DAC channelx Configuration */
 			DAC_InitStructure.DAC_Trigger = trgo_source;	// probably TO CHANGE
 			DAC_InitStructure.DAC_WaveGeneration = DAC_WaveGeneration_None;
-			//DAC_InitStructure.DAC_LFSRUnmask_TriangleAmplitude = DAC_LFSRUnmask_Bits10_0;
 			DAC_InitStructure.DAC_OutputBuffer = DAC_OutputBuffer_Enable;
 			DAC_Init(DAC_Channel_var, &DAC_InitStructure);
 
-			DMA_DAC_Config(channel, e_dac_sine);
+			DMA_DAC_Config(channel, function);
 		}
 		break;
 		case e_dac_noise:
@@ -216,8 +215,6 @@ void DMA_DAC_Config(t_dac_channel channel, t_dac_function function)
 	DMA_InitTypeDef       DMA_InitStructure;
 	uint32_t *pBuffer = 0;
 
-
-
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA1, ENABLE);
 
 	DMA_InitStructure.DMA_Channel = DMA_Channel_7;
@@ -230,7 +227,7 @@ void DMA_DAC_Config(t_dac_channel channel, t_dac_function function)
 	DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_HalfWord;
 	DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;
 	DMA_InitStructure.DMA_Mode = DMA_Mode_Circular;
-	DMA_InitStructure.DMA_Priority = DMA_Priority_VeryHigh;
+	DMA_InitStructure.DMA_Priority = DMA_Priority_High;
 	DMA_InitStructure.DMA_FIFOMode = DMA_FIFOMode_Disable;
 	DMA_InitStructure.DMA_FIFOThreshold = DMA_FIFOThreshold_HalfFull;
 	DMA_InitStructure.DMA_MemoryBurst = DMA_MemoryBurst_Single;

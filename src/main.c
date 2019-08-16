@@ -52,7 +52,7 @@ int main(void)
 		if (SET == gDMA_FT_event)
 		{
 			gDMA_FT_event = RESET;
-			DMA_Feed_Buffer(ADC_return_val(1), e_dac_channel_1);
+			//DMA_Feed_Buffer(ADC_return_val(1), e_dac_channel_1);
 			//DMA_Feed_Buffer(ADC_return_val(1), e_dac_channel_2);
 			GPIO_ToggleBits(GPIOG, GPIO_Pin_13);
 		}
@@ -60,7 +60,7 @@ int main(void)
 		if (SET == gDMA_HT_event)
 		{
 			gDMA_HT_event = RESET;
-			DMA_Feed_Buffer(ADC_return_val(0), e_dac_channel_1);
+			//DMA_Feed_Buffer(ADC_return_val(0), e_dac_channel_1);
 			//DMA_Feed_Buffer(ADC_return_val(0), e_dac_channel_2);
 			GPIO_ToggleBits(GPIOG, GPIO_Pin_14);
 		}
