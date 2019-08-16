@@ -87,7 +87,7 @@ void TIM7_Config(uint16_t period, uint16_t prescaler)
 }
 
 /**
- * @brief TIM8 set to trigger ADC => Fupd = 9KHz
+ * @brief TIM8 set to trigger ADC => F upd = 9KHz
  */
 void TIM2_Config(void)
 {
@@ -100,8 +100,8 @@ void TIM2_Config(void)
 	/* Time base configuration */
 	TIM_TimeBaseStructInit(&TIM_TimeBaseStructure);
 
-	TIM_TimeBaseStructure.TIM_Period = (100-1);
-	TIM_TimeBaseStructure.TIM_Prescaler = (100-1);
+	TIM_TimeBaseStructure.TIM_Period = (5000 - 1);
+	TIM_TimeBaseStructure.TIM_Prescaler = (1 - 1);
 	// Sampling an Audio signal: Fsampl >= 7KHz
 	// with this setting: 90E6/((100)*(100)) = 9KHz
 
