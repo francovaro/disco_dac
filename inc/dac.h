@@ -29,5 +29,6 @@ typedef enum
 
 extern void DAC_FV_initPin(void);
 extern uint8_t DAC_fv_init(t_dac_function function, t_dac_channel channel);
+extern void DMA_Feed_Buffer(uint16_t newSample, t_dac_channel channel);
 
 #endif /* INC_DAC_H_ */

@@ -203,6 +203,8 @@ void DAC_FV_initPin(void)
 
 /**
  * @brief Config DMA for DAC
+ * @param channel
+ * @param function
  */
 void DMA_DAC_Config(t_dac_channel channel, t_dac_function function)
 {
@@ -213,7 +215,6 @@ void DMA_DAC_Config(t_dac_channel channel, t_dac_function function)
 	 * Stream 6 => DAC2
 	 */
 	DMA_InitTypeDef       DMA_InitStructure;
-	uint32_t *pBuffer = 0;
 
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA1, ENABLE);
 
@@ -292,6 +293,10 @@ void DMA_DAC_Config(t_dac_channel channel, t_dac_function function)
 	
 }
 
+/**
+ *
+ * @param channel
+ */
 void DMA_DAC_NVIC_Configuration(t_dac_channel channel)
 {
 	NVIC_InitTypeDef NVIC_InitStructure;
@@ -314,6 +319,11 @@ void DMA_DAC_NVIC_Configuration(t_dac_channel channel)
 	NVIC_Init(&NVIC_InitStructure);
 }
 
+/**
+ *
+ * @param newSample
+ * @param channel
+ */
 void DMA_Feed_Buffer(uint16_t newSample, t_dac_channel channel)
 {
 	if (channel == e_dac_channel_1)
@@ -329,6 +339,9 @@ void DMA_Feed_Buffer(uint16_t newSample, t_dac_channel channel)
 
 }
 
+/**
+ *
+ */
 void DMA1_Stream5_IRQHandler(void)
 {
 	if(DMA_GetITStatus(DMA1_Stream5, DMA_IT_HTIF0))
@@ -342,6 +355,9 @@ void DMA1_Stream5_IRQHandler(void)
 	}
 }
 
+/**
+ *
+ */
 void DMA1_Stream6_IRQHandler(void)
 {
 	if(DMA_GetITStatus(DMA1_Stream6, DMA_IT_HTIF0))

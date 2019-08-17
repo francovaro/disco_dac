@@ -96,6 +96,12 @@ void TIM2_Config(void)
 	TIM_Cmd(TIM2, ENABLE);
 }
 
+/**
+ *
+ * @param timConfig
+ * @param newPrescaler
+ * @param newARR
+ */
 void TIM_x_UpdateTimer(t_tim_number timConfig, uint16_t newPrescaler, uint16_t newARR)
 {
   TIM_TypeDef *TIMx;

@@ -11,12 +11,19 @@
 
 /*
  * Base use of DAC
- *
+ * SYSCLK 180 MHz
+ * HCLK = 180 MHz
+ * APB1 = 45 MHz
+ * APB2 = 90 MHz
+ * AHB  = 180 MHz
+ * APB1 & APB2 TIM CLK = 90 MHz
  */
 
 #include "stm32f4xx.h"
+#include "adc.h"
 #include "dac.h"
 #include "tim.h"
+//#include "button.h"
 			
 static void _initLed(void);
 static __IO uint8_t sysTickExpired = 0;
@@ -28,14 +35,13 @@ int main(void)
 	SystemCoreClockUpdate();
 	_initLed();
 
-	TIM6_Config();
-	TIM7_Config();
+	TIM2_Config();
+	ADC_fv_Init();
 
 	DAC_FV_initPin();
 
 	DAC_fv_init(e_dac_sine, e_dac_channel_1);
 	DAC_fv_init(e_dac_triangle, e_dac_channel_2);
-	DAC_fv_init(e_dac_triangle, e_dac_channel_1);
 
 	setSysTick (1000);
 	GPIO_WriteBit(GPIOG, GPIO_Pin_13, SET);
@@ -43,11 +49,36 @@ int main(void)
 
 	while(1)
 	{
+		if (SET == gDMA_FT_event)
+		{
+			gDMA_FT_event = RESET;
+			//DMA_Feed_Buffer(ADC_return_val(1), e_dac_channel_1);
+			//DMA_Feed_Buffer(ADC_return_val(1), e_dac_channel_2);
+			GPIO_ToggleBits(GPIOG, GPIO_Pin_13);
+		}
+
+		if (SET == gDMA_HT_event)
+		{
+			gDMA_HT_event = RESET;
+			//DMA_Feed_Buffer(ADC_return_val(0), e_dac_channel_1);
+			//DMA_Feed_Buffer(ADC_return_val(0), e_dac_channel_2);
+			GPIO_ToggleBits(GPIOG, GPIO_Pin_14);
+		}
+/*
+		if (SET == gGPIO_UP)
+		{
+			gGPIO_UP = RESET;
+		}
+
+		if (SET == gGPIO_DOWN)
+		{
+			gGPIO_DOWN = RESET;
+		}
+*/
 		if (sysTickExpired)
 		{
-			sysTickExpired = 0;
-			GPIO_ToggleBits(GPIOG, GPIO_Pin_13);
-			GPIO_ToggleBits(GPIOG, GPIO_Pin_14);
+			sysTickExpired = 0;			
+			//GPIO_ToggleBits(GPIOG, GPIO_Pin_14);
 		}
 	}
 }
