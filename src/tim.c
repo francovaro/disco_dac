@@ -14,7 +14,12 @@
   */
  #include "stm32f4xx_tim.h"
  #include "tim.h"
- 
+
+/**
+ * @brief Set of TIM7
+ * @param period
+ * @param prescaler
+ */
 void TIM6_Config(uint16_t period, uint16_t prescaler)
 {
   /* TIM6CLK = HCLK / 4 = SystemCoreClock /2 = 90 MHz*/
@@ -23,10 +28,20 @@ void TIM6_Config(uint16_t period, uint16_t prescaler)
   /* TIM6 Periph clock enable */
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM6, ENABLE);
 
+  if (period == 0)
+  {
+	  period = 1u;
+  }
+
+  if (prescaler == 0)
+  {
+	  prescaler = 1u;
+  }
+
   /* Time base configuration */
   TIM_TimeBaseStructInit(&TIM_TimeBaseStructure);
-  TIM_TimeBaseStructure.TIM_Period = 90-1; //(1 - 1);						/*  Specifies the period value to be loaded into the active Auto-Reload Register at the next update event.*/
-  TIM_TimeBaseStructure.TIM_Prescaler = 0; //(90 - 1);						/*Specifies the prescaler value used to divide the TIM clock.*/
+  TIM_TimeBaseStructure.TIM_Period = period - 1;						/*  Specifies the period value to be loaded into the active Auto-Reload Register at the next update event.*/
+  TIM_TimeBaseStructure.TIM_Prescaler = prescaler - 1;						/*Specifies the prescaler value used to divide the TIM clock.*/
   TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
   TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
   TIM_TimeBaseInit(TIM6, &TIM_TimeBaseStructure);
@@ -39,7 +54,7 @@ void TIM6_Config(uint16_t period, uint16_t prescaler)
 }
 
 /**
- *
+ * @brief Set of TIM7
  * @param prescaler
  * @param period
  */
@@ -51,10 +66,20 @@ void TIM7_Config(uint16_t period, uint16_t prescaler)
   /* TIM7 Periph clock enable */
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM7, ENABLE);
 
+  if (period == 0)
+  {
+	  period = 1u;
+  }
+
+  if (prescaler == 0)
+  {
+	  prescaler = 1u;
+  }
+
   /* Time base configuration */
   TIM_TimeBaseStructInit(&TIM_TimeBaseStructure);
-  TIM_TimeBaseStructure.TIM_Period = 180-1;//(1 -1);
-  TIM_TimeBaseStructure.TIM_Prescaler = 0;//(180- 1);
+  TIM_TimeBaseStructure.TIM_Period = period;
+  TIM_TimeBaseStructure.TIM_Prescaler = prescaler;
   TIM_TimeBaseStructure.TIM_ClockDivision = 0;
   TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
   TIM_TimeBaseInit(TIM7, &TIM_TimeBaseStructure);
@@ -80,10 +105,10 @@ void TIM2_Config(void)
 	/* Time base configuration */
 	TIM_TimeBaseStructInit(&TIM_TimeBaseStructure);
 
-	TIM_TimeBaseStructure.TIM_Period = (5000 - 1);
-	TIM_TimeBaseStructure.TIM_Prescaler = (1 - 1);
+	TIM_TimeBaseStructure.TIM_Period = (100 - 1);
+	TIM_TimeBaseStructure.TIM_Prescaler = (90 - 1);
 	// Sampling an Audio signal: Fsampl >= 7KHz
-	// with this setting: 90E6/((100)*(100)) = 9KHz
+	// with this setting: 90E6/((100)*(90)) = 10KHz
 
 	TIM_TimeBaseStructure.TIM_ClockDivision = 0;
 	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;

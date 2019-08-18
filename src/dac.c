@@ -10,8 +10,10 @@
 #include "tim.h"
 
 #define 	DAC_BUFFER_SIZE	20
+#define   	DAC_DHR12R1_ADDR  0x40007408                           // DMA writes into this reg on every request
+#define   	DAC_DHR12R2_ADDR  0x40007410                           // DMA writes into this reg on every request
 
-const uint16_t Sine12bit[32] = {
+__IO const uint16_t Sine12bit[32] = {
                       2047, 2447, 2831, 3185, 3498, 3750, 3939, 4056, 4095, 4056,
                       3939, 3750, 3495, 3185, 2831, 2447, 2047, 1647, 1263, 909,
                       599, 344, 155, 38, 0, 38, 155, 344, 599, 909, 1263, 1647};
@@ -39,8 +41,6 @@ uint8_t DAC_fv_init(t_dac_function function, t_dac_channel channel)
 
 	DAC_StructInit(&DAC_InitStructure);
 
-	// DAC_DeInit();
-
 	if (channel == e_dac_channel_1)
 	{
 		DAC_Channel_var = DAC_Channel_1;
@@ -60,7 +60,9 @@ uint8_t DAC_fv_init(t_dac_function function, t_dac_channel channel)
 	{
 		case e_dac_escalator:
 		{
-
+			/*
+			 * TODO
+			 */
 		}
 		break;
 		case e_dac_sine:
@@ -70,14 +72,14 @@ uint8_t DAC_fv_init(t_dac_function function, t_dac_channel channel)
 				_dac_buffer_index_ch1 = 0;
 				/* Set DAC channel1 DHR12RD register */
 				DAC_SetChannel1Data(DAC_Align_12b_R, 0x050);
-				TIM6_Config(0xFF, 1);
+				TIM6_Config(281, 1);
 			}
 			else if (channel == e_dac_channel_2)
 			{
 				_dac_buffer_index_ch2 = 0;
 				/* Set DAC channel2 DHR12RD register */
 				DAC_SetChannel2Data(DAC_Align_12b_R, 0x050);
-				TIM7_Config(0xFF, 1);
+				TIM7_Config(0xFF, 2);
 			}
 
 			/* DAC channelx Configuration */
@@ -161,9 +163,10 @@ uint8_t DAC_fv_init(t_dac_function function, t_dac_channel channel)
 			/* DAC channel1 Configuration */
 			DAC_InitStructure.DAC_Trigger = trgo_source;	// probably TO CHANGE
 			DAC_InitStructure.DAC_WaveGeneration = DAC_WaveGeneration_None;
-			//DAC_InitStructure.DAC_LFSRUnmask_TriangleAmplitude = DAC_LFSRUnmask_Bits10_0;
 			DAC_InitStructure.DAC_OutputBuffer = DAC_OutputBuffer_Enable;
 			DAC_Init(DAC_Channel_var, &DAC_InitStructure);
+
+			DAC_SoftwareTriggerCmd(DAC_Channel_var, ENABLE);
 
 			DMA_DAC_Config(channel, function);
 		}
@@ -188,17 +191,21 @@ void DAC_FV_initPin(void)
 	GPIO_InitTypeDef GPIO_InitStructure;
 
 	/* DMA1 clock and GPIOA clock enable (to be used with DAC) */
-	  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA1 | RCC_AHB1Periph_GPIOA, ENABLE);
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA1, ENABLE);
 
 	/* DAC Periph clock enable */
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_DAC, ENABLE);
 
 	/* DAC channel 1 & 2 (DAC_OUT1 = PA.4)(DAC_OUT2 = PA.5) configuration */
+	GPIO_StructInit(&GPIO_InitStructure);
+
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4 | GPIO_Pin_5;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-	GPIO_Init(GPIOA, &GPIO_InitStructure);
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
 }
 
 /**
@@ -216,33 +223,30 @@ void DMA_DAC_Config(t_dac_channel channel, t_dac_function function)
 	 */
 	DMA_InitTypeDef       DMA_InitStructure;
 
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA1, ENABLE);
+	DMA_StructInit(&DMA_InitStructure);
 
 	DMA_InitStructure.DMA_Channel = DMA_Channel_7;
-
-	DMA_InitStructure.DMA_DIR = DMA_DIR_MemoryToPeripheral;
-
-	DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
-	DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
-
+	DMA_InitStructure.DMA_DIR                = DMA_DIR_MemoryToPeripheral;
+	DMA_InitStructure.DMA_PeripheralInc      = DMA_PeripheralInc_Disable;
+	DMA_InitStructure.DMA_MemoryInc          = DMA_MemoryInc_Enable;
 	DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_HalfWord;
-	DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;
-	DMA_InitStructure.DMA_Mode = DMA_Mode_Circular;
-	DMA_InitStructure.DMA_Priority = DMA_Priority_High;
-	DMA_InitStructure.DMA_FIFOMode = DMA_FIFOMode_Disable;
-	DMA_InitStructure.DMA_FIFOThreshold = DMA_FIFOThreshold_HalfFull;
-	DMA_InitStructure.DMA_MemoryBurst = DMA_MemoryBurst_Single;
-	DMA_InitStructure.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
+	DMA_InitStructure.DMA_MemoryDataSize     = DMA_MemoryDataSize_HalfWord;
+	DMA_InitStructure.DMA_Mode               = DMA_Mode_Circular;
+	DMA_InitStructure.DMA_Priority           = DMA_Priority_High;
+	DMA_InitStructure.DMA_FIFOMode           = DMA_FIFOMode_Disable;
+	DMA_InitStructure.DMA_FIFOThreshold      = DMA_FIFOThreshold_HalfFull;
+	DMA_InitStructure.DMA_MemoryBurst        = DMA_MemoryBurst_Single;
+	DMA_InitStructure.DMA_PeripheralBurst    = DMA_PeripheralBurst_Single;
 
 	if (channel == e_dac_channel_1)
 	{
 		DMA_DeInit(DMA1_Stream5);
 
-		DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)DAC->DHR12R1;
+		DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)DAC_DHR12R1_ADDR;
 
 		if (function == e_dac_sine)
 		{
-			DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)&Sine12bit;
+			DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)&Sine12bit[0];
 			DMA_InitStructure.DMA_BufferSize = 32;
 		}
 		else
@@ -250,27 +254,26 @@ void DMA_DAC_Config(t_dac_channel channel, t_dac_function function)
 			DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)&_dac_buffer_ch1[0];
 			DMA_InitStructure.DMA_BufferSize = DAC_BUFFER_SIZE;
 		}
-
 		DMA_Init(DMA1_Stream5, &DMA_InitStructure);
-		DMA_ITConfig(DMA1_Stream5, DMA_IT_TC | DMA_IT_HT,  ENABLE);
 
 		DMA_Cmd(DMA1_Stream5, ENABLE);
+		while (DMA_GetCmdStatus(DMA1_Stream5) != ENABLE);
 
-		DMA_DAC_NVIC_Configuration(e_dac_channel_1);
 
 		DAC_Cmd(DAC_Channel_1, ENABLE);
+		while (DMA_GetCmdStatus(DMA1_Stream5) != ENABLE);
+		DAC_DMACmd(DAC_Channel_1, ENABLE);
 
-		DAC_DMACmd(DAC_Channel_1, ENABLE);	
 	}
 	else if (channel == e_dac_channel_2)
 	{
 		DMA_DeInit(DMA1_Stream6);
 
-		DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)DAC->DHR12R2;
+		DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)DAC_DHR12R2_ADDR;
 
 		if (function == e_dac_sine)
 		{
-			DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)&Sine12bit;
+			DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)&Sine12bit[0];
 			DMA_InitStructure.DMA_BufferSize = 32;
 		}
 		else
@@ -280,15 +283,13 @@ void DMA_DAC_Config(t_dac_channel channel, t_dac_function function)
 		}
 
 		DMA_Init(DMA1_Stream6, &DMA_InitStructure);
-		DMA_ITConfig(DMA1_Stream6, DMA_IT_TC | DMA_IT_HT,  ENABLE);
 
 		DMA_Cmd(DMA1_Stream6, ENABLE);
-
-		DMA_DAC_NVIC_Configuration(e_dac_channel_2);
+		while (DMA_GetCmdStatus(DMA1_Stream6) != ENABLE);
 
 		DAC_Cmd(DAC_Channel_2, ENABLE);
-
-		DAC_DMACmd(DAC_Channel_2, ENABLE);	
+		while (DMA_GetCmdStatus(DMA1_Stream6) != ENABLE);
+		DAC_DMACmd(DAC_Channel_2, ENABLE);
 	}
 	
 }

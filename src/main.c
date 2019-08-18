@@ -26,9 +26,9 @@
 //#include "button.h"
 			
 static void _initLed(void);
-static __IO uint8_t sysTickExpired = 0;
+static void setSysTick(uint32_t timeMs);
 
-void setSysTick(uint32_t timeMs);
+static __IO uint8_t sysTickExpired = 0;
 
 int main(void)
 {
@@ -40,7 +40,7 @@ int main(void)
 
 	DAC_FV_initPin();
 
-	DAC_fv_init(e_dac_sine, e_dac_channel_1);
+	DAC_fv_init(e_dac_buffer, e_dac_channel_1);
 	DAC_fv_init(e_dac_triangle, e_dac_channel_2);
 
 	setSysTick (1000);
@@ -52,16 +52,16 @@ int main(void)
 		if (SET == gDMA_FT_event)
 		{
 			gDMA_FT_event = RESET;
-			//DMA_Feed_Buffer(ADC_return_val(1), e_dac_channel_1);
-			//DMA_Feed_Buffer(ADC_return_val(1), e_dac_channel_2);
+			DMA_Feed_Buffer(ADC_return_val(1), e_dac_channel_1);
+			DMA_Feed_Buffer(ADC_return_val(1), e_dac_channel_2);
 			GPIO_ToggleBits(GPIOG, GPIO_Pin_13);
 		}
 
 		if (SET == gDMA_HT_event)
 		{
 			gDMA_HT_event = RESET;
-			//DMA_Feed_Buffer(ADC_return_val(0), e_dac_channel_1);
-			//DMA_Feed_Buffer(ADC_return_val(0), e_dac_channel_2);
+			DMA_Feed_Buffer(ADC_return_val(0), e_dac_channel_1);
+			DMA_Feed_Buffer(ADC_return_val(0), e_dac_channel_2);
 			GPIO_ToggleBits(GPIOG, GPIO_Pin_14);
 		}
 /*
@@ -83,7 +83,9 @@ int main(void)
 	}
 }
 
-
+/**
+ *
+ */
 void _initLed(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
@@ -99,6 +101,10 @@ void _initLed(void)
 	GPIO_Init(GPIOG , &GPIO_InitStructure);
 }
 
+/**
+ *
+ * @param timeMs
+ */
 void setSysTick(uint32_t timeMs)
 {
 	 RCC_ClocksTypeDef RCC_Clocks;
@@ -107,6 +113,9 @@ void setSysTick(uint32_t timeMs)
 	 SysTick_Config((RCC_Clocks.SYSCLK_Frequency/180)/timeMs); // hz/s
 }
 
+/**
+ *
+ */
 void SysTick_Handler(void)
 {
 	static uint16_t  count;
