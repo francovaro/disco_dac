@@ -23,16 +23,19 @@
 #include "adc.h"
 #include "dac.h"
 #include "tim.h"
+#include "uart.h"
+#include <string.h>
 //#include "button.h"
 			
 static void _initLed(void);
 static void setSysTick(uint32_t timeMs);
+static void _converti(uint16_t dato,char str[]);
+static void _sendData(uint16_t num);
 
 static __IO uint8_t sysTickExpired = 0;
 
 int main(void)
 {
-	// SystemCoreClockUpdate();
 	_initLed();
 
 	TIM2_Config();	/* TIM 2 init to output TIM_TRGOSource_Update */
@@ -42,6 +45,8 @@ int main(void)
 
 	DAC_fv_init(e_dac_buffer, e_dac_channel_1);		/* init DAC ch 1 */
 	DAC_fv_init(e_dac_triangle, e_dac_channel_2);	/* init DAC ch 2 */
+
+	UART_fv_config(DISABLE);
 
 	setSysTick (1000);
 	GPIO_WriteBit(GPIOG, GPIO_Pin_13, SET);
@@ -55,6 +60,7 @@ int main(void)
 			DMA_Feed_Buffer(ADC_return_val(1), e_dac_channel_1);
 			DMA_Feed_Buffer(ADC_return_val(1), e_dac_channel_2);
 			GPIO_ToggleBits(GPIOG, GPIO_Pin_13);
+			_sendData(ADC_return_val(1));
 		}
 
 		if (SET == gDMA_HT_event)
@@ -63,7 +69,12 @@ int main(void)
 			DMA_Feed_Buffer(ADC_return_val(0), e_dac_channel_1);
 			DMA_Feed_Buffer(ADC_return_val(0), e_dac_channel_2);
 			GPIO_ToggleBits(GPIOG, GPIO_Pin_14);
+			_sendData(ADC_return_val(1));
 		}
+
+
+
+
 /*
 		if (SET == gGPIO_UP)
 		{
@@ -125,4 +136,52 @@ void SysTick_Handler(void)
 		sysTickExpired = 1;
 		count = 0;
 	}
+}
+
+void _converti(uint16_t dato, char str[])
+{
+	unsigned char iniziato=0,quoz=0,index=0;
+	unsigned int base,rest;
+
+	for (base=1000;base;base/=10)
+	{
+		quoz=dato/base;
+		rest=dato%base;
+		if(!iniziato)
+		{
+			if(quoz)
+			{
+				str[index++]=quoz+'0';
+				iniziato=1;
+			}
+		}
+		else
+		{
+			str[index++]=quoz+'0';
+		}
+		dato=rest;
+	}
+	if(!iniziato)
+	{
+		str[index++]=quoz+'0';
+	}
+
+	str[index]=0;
+}
+
+void _sendData(uint16_t num)
+{
+	/*
+	 * trasmettendo a 115.000 BPS posso tramettere circa 11.000 bytes in un secondo
+	 * con 100 dati su strnga da 10 ho 1000 bytes , ce la faccio ...*/
+	char str_dato[10];
+
+	strcpy(str_dato,"         ");
+
+	_converti(num,str_dato);
+	strcat (str_dato," ");
+	UART_fv_SendData(str_dato, strlen(str_dato));
+
+	// fv_Uart_SendData(" FINE\n",6);
+	// GPIO_ToggleBits(GPIOA,GPIO_Pin_5);
 }
