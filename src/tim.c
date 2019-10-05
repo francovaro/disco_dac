@@ -92,11 +92,11 @@ void TIM7_Config(uint16_t period, uint16_t prescaler)
 }
 
 /**
- * @brief TIM8 set to trigger ADC => F upd = 9KHz
+ * @brief TIM2 set to trigger ADC => F upd = 9KHz
  */
 void TIM2_Config(void)
 {
-	/* TIM8CLK = HCLK / 4 = SystemCoreClock /2 = 90 MHz*/
+	/* TIM2CLK = HCLK / 4 = SystemCoreClock /2 = 90 MHz*/
 
 	TIM_TimeBaseInitTypeDef    TIM_TimeBaseStructure;
 	/* TIM8 Periph clock enable */

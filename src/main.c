@@ -4,7 +4,7 @@
   * @author  Fra
   * @version V1.0
   * @date    01-08-2019
-  * @brief   Default main function.
+  * @brief   Default main file.
   ******************************************************************************
 */
 
@@ -32,16 +32,16 @@ static __IO uint8_t sysTickExpired = 0;
 
 int main(void)
 {
-	SystemCoreClockUpdate();
+	// SystemCoreClockUpdate();
 	_initLed();
 
-	TIM2_Config();
-	ADC_fv_Init();
+	TIM2_Config();	/* TIM 2 init to output TIM_TRGOSource_Update */
+	ADC_fv_Init();	/* set ADC3 channel 4 */
 
-	DAC_FV_initPin();
+	DAC_FV_initPin();	/* init GPIOA 4 and GPIOA 5 */
 
-	DAC_fv_init(e_dac_buffer, e_dac_channel_1);
-	DAC_fv_init(e_dac_triangle, e_dac_channel_2);
+	DAC_fv_init(e_dac_buffer, e_dac_channel_1);		/* init DAC ch 1 */
+	DAC_fv_init(e_dac_triangle, e_dac_channel_2);	/* init DAC ch 2 */
 
 	setSysTick (1000);
 	GPIO_WriteBit(GPIOG, GPIO_Pin_13, SET);
@@ -108,7 +108,7 @@ void _initLed(void)
 void setSysTick(uint32_t timeMs)
 {
 	 RCC_ClocksTypeDef RCC_Clocks;
-	 SystemCoreClockUpdate();
+	 // SystemCoreClockUpdate();
 	 RCC_GetClocksFreq(&RCC_Clocks);
 	 SysTick_Config((RCC_Clocks.SYSCLK_Frequency/180)/timeMs); // hz/s
 }
