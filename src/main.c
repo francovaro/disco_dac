@@ -25,7 +25,6 @@
 #include "tim.h"
 #include "uart.h"
 #include <string.h>
-//#include "button.h"
 			
 static void _initLed(void);
 static void setSysTick(uint32_t timeMs);
@@ -52,6 +51,8 @@ int main(void)
 	GPIO_WriteBit(GPIOG, GPIO_Pin_13, SET);
 	GPIO_WriteBit(GPIOG, GPIO_Pin_14, RESET);
 
+	UART_fv_SendData("START\n", strlen("START\n"));
+
 	while(1)
 	{
 		if (SET == gDMA_FT_event)
@@ -69,11 +70,8 @@ int main(void)
 			DMA_Feed_Buffer(ADC_return_val(0), e_dac_channel_1);
 			DMA_Feed_Buffer(ADC_return_val(0), e_dac_channel_2);
 			GPIO_ToggleBits(GPIOG, GPIO_Pin_14);
-			_sendData(ADC_return_val(1));
+			_sendData(ADC_return_val(0));
 		}
-
-
-
 
 /*
 		if (SET == gGPIO_UP)
@@ -89,7 +87,6 @@ int main(void)
 		if (sysTickExpired)
 		{
 			sysTickExpired = 0;			
-			//GPIO_ToggleBits(GPIOG, GPIO_Pin_14);
 		}
 	}
 }
@@ -119,7 +116,7 @@ void _initLed(void)
 void setSysTick(uint32_t timeMs)
 {
 	 RCC_ClocksTypeDef RCC_Clocks;
-	 // SystemCoreClockUpdate();
+
 	 RCC_GetClocksFreq(&RCC_Clocks);
 	 SysTick_Config((RCC_Clocks.SYSCLK_Frequency/180)/timeMs); // hz/s
 }
@@ -151,19 +148,19 @@ void _converti(uint16_t dato, char str[])
 		{
 			if(quoz)
 			{
-				str[index++]=quoz+'0';
+				str[index++]=quoz + '0';
 				iniziato=1;
 			}
 		}
 		else
 		{
-			str[index++]=quoz+'0';
+			str[index++]=quoz + '0';
 		}
 		dato=rest;
 	}
 	if(!iniziato)
 	{
-		str[index++]=quoz+'0';
+		str[index++]=quoz + '0';
 	}
 
 	str[index]=0;
@@ -179,9 +176,6 @@ void _sendData(uint16_t num)
 	strcpy(str_dato,"         ");
 
 	_converti(num,str_dato);
-	strcat (str_dato," ");
+	strcat (str_dato,"\n");
 	UART_fv_SendData(str_dato, strlen(str_dato));
-
-	// fv_Uart_SendData(" FINE\n",6);
-	// GPIO_ToggleBits(GPIOA,GPIO_Pin_5);
 }

@@ -20,6 +20,7 @@ void UART_fv_config(uint8_t irqEnabled)
 	usart_serialReceived = 0;
 	usart_nrOfByte = 0;
 
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
 	GPIO_StructInit(&GPIO_InitStruct);
 	USART_StructInit(&USART_InitStructure);
 
