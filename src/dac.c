@@ -151,6 +151,9 @@ uint8_t DAC_fv_init(t_dac_function function, t_dac_channel channel)
 				/* Set DAC channel1 DHR12RD register */
 				DAC_SetChannel1Data(DAC_Align_12b_R, 0x050);
 				TIM6_Config(1000, 1);
+
+				gDMA_DAC1_FT_event = RESET;
+				gDMA_DAC1_HT_event = RESET;
 			}
 			else if (channel == e_dac_channel_2)
 			{
@@ -158,6 +161,9 @@ uint8_t DAC_fv_init(t_dac_function function, t_dac_channel channel)
 				/* Set DAC channel2 DHR12RD register */
 				DAC_SetChannel2Data(DAC_Align_12b_R, 0x050);
 				TIM7_Config(1000, 1);
+
+				gDMA_DAC2_FT_event = RESET;
+				gDMA_DAC2_HT_event = RESET;
 			}
 
 			/* DAC channel1 Configuration */
@@ -169,6 +175,8 @@ uint8_t DAC_fv_init(t_dac_function function, t_dac_channel channel)
 			DAC_SoftwareTriggerCmd(DAC_Channel_var, ENABLE);
 
 			DMA_DAC_Config(channel, function);
+
+			DMA_DAC_NVIC_Configuration(DAC_Channel_var);
 		}
 		break;
 		default:
@@ -347,11 +355,13 @@ void DMA1_Stream5_IRQHandler(void)
 {
 	if(DMA_GetITStatus(DMA1_Stream5, DMA_IT_HTIF0))
 	{
+		gDMA_DAC1_HT_event = SET;
 		DMA_ClearITPendingBit(DMA1_Stream5, DMA_IT_HTIF0);
 	}
 
 	if(DMA_GetITStatus(DMA1_Stream5, DMA_IT_TCIF0))
 	{
+		gDMA_DAC1_FT_event = SET;
 		DMA_ClearITPendingBit(DMA1_Stream5, DMA_IT_TCIF0);
 	}
 }
@@ -363,11 +373,13 @@ void DMA1_Stream6_IRQHandler(void)
 {
 	if(DMA_GetITStatus(DMA1_Stream6, DMA_IT_HTIF0))
 	{
+		gDMA_DAC2_HT_event = SET;
 		DMA_ClearITPendingBit(DMA1_Stream6, DMA_IT_HTIF0);
 	}
 
 	if(DMA_GetITStatus(DMA1_Stream6, DMA_IT_TCIF0))
 	{
+		gDMA_DAC2_FT_event = SET;
 		DMA_ClearITPendingBit(DMA1_Stream6, DMA_IT_TCIF0);
 	}
 }

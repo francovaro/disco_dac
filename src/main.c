@@ -55,35 +55,44 @@ int main(void)
 
 	while(1)
 	{
-		if (SET == gDMA_FT_event)
+		if (SET == gDMA_ADC_FT_event)
 		{
-			gDMA_FT_event = RESET;
+			gDMA_ADC_FT_event = RESET;
 			DMA_Feed_Buffer(ADC_return_val(1), e_dac_channel_1);
 			DMA_Feed_Buffer(ADC_return_val(1), e_dac_channel_2);
-			//GPIO_ToggleBits(GPIOG, GPIO_Pin_13);
+			GPIO_ToggleBits(GPIOG, GPIO_Pin_13);
 			//_sendData(ADC_return_val(1));
 		}
 
-		if (SET == gDMA_HT_event)
+		if (SET == gDMA_ADC_HT_event)
 		{
-			gDMA_HT_event = RESET;
+			gDMA_ADC_HT_event = RESET;
 			DMA_Feed_Buffer(ADC_return_val(0), e_dac_channel_1);
 			DMA_Feed_Buffer(ADC_return_val(0), e_dac_channel_2);
-			GPIO_ToggleBits(GPIOG, GPIO_Pin_13);
+			//GPIO_ToggleBits(GPIOG, GPIO_Pin_13);
 			//_sendData(ADC_return_val(0));
 		}
 
-/*
-		if (SET == gGPIO_UP)
+		if (SET == gDMA_DAC1_FT_event)
 		{
-			gGPIO_UP = RESET;
+			GPIO_ToggleBits(GPIOG, GPIO_Pin_14);
 		}
 
-		if (SET == gGPIO_DOWN)
+		if (SET == gDMA_DAC1_HT_event)
 		{
-			gGPIO_DOWN = RESET;
+
 		}
-*/
+
+		if (SET == gDMA_DAC2_FT_event)
+		{
+
+		}
+
+		if (SET == gDMA_DAC2_HT_event)
+		{
+
+		}
+
 		if (sysTickExpired)
 		{
 			sysTickExpired = 0;			

@@ -111,8 +111,8 @@ void DMA_ADC_Config(void)
 	DMA_ITConfig(DMA2_Stream0, DMA_IT_TC | DMA_IT_HT,  ENABLE);
 	DMA_Cmd(DMA2_Stream0, ENABLE);
 
-	gDMA_FT_event = RESET;
-	gDMA_HT_event = RESET;
+	gDMA_ADC_FT_event = RESET;
+	gDMA_ADC_HT_event = RESET;
 
 	//while(DMA_GetCmdStatus(DMA2_Stream0)!=ENABLE);		//check if DMA is ready
 
@@ -143,14 +143,14 @@ void DMA2_Stream0_IRQHandler(void)
 {
 	if(DMA_GetITStatus(DMA2_Stream0, DMA_IT_HTIF0))
 	{
-		gDMA_HT_event = SET;
+		gDMA_ADC_HT_event = SET;
 		DMA_ClearITPendingBit(DMA2_Stream0, DMA_IT_HTIF0);
 	}
 
 	/* Test on DMA Stream Transfer Complete interrupt */
 	if(DMA_GetITStatus(DMA2_Stream0, DMA_IT_TCIF0))
 	{
-		gDMA_FT_event = SET;
+		gDMA_ADC_FT_event = SET;
 		DMA_ClearITPendingBit(DMA2_Stream0, DMA_IT_TCIF0);
 	}
 

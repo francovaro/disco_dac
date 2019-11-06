@@ -27,6 +27,12 @@ typedef enum
 	e_dac_channel_max
 } t_dac_channel;
 
+__IO uint8_t gDMA_DAC1_FT_event;
+__IO uint8_t gDMA_DAC1_HT_event;
+
+__IO uint8_t gDMA_DAC2_FT_event;
+__IO uint8_t gDMA_DAC2_HT_event;
+
 extern void DAC_FV_initPin(void);
 extern uint8_t DAC_fv_init(t_dac_function function, t_dac_channel channel);
 extern void DMA_Feed_Buffer(uint16_t newSample, t_dac_channel channel);
